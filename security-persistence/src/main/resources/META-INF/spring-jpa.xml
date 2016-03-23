@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo-1.4.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.3.xsd">
+		
+	<jpa:repositories base-package="com.github.lxgang.spring.security.repositories"/>
+
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+<!--         <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/> -->
+        <property name="packagesToScan" value="com.github.lxgang.spring.security.beans"/>
+        <property name="persistenceUnitName" value="jpaWithoutAnnotation"/>
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
+        </property>
+        <property name="jpaProperties">
+            <props>
+                <!--
+                    hibernate.hbm2ddl.auto参数的作用主要用于：自动创建|更新|验证数据库表结构。如果不是此方面的需求建议set value="none"
+                    可选参数:
+                        validate	加载hibernate时，验证创建数据库表结构
+                        create		每次加载hibernate，重新创建数据库表结构，这就是导致数据库表数据丢失的原因
+                        create-drop	加载hibernate时创建，退出是删除表结构
+                        update		加载hibernate自动更新数据库结构
+                 -->
+                <prop key="hibernate.dialect">${hibernate.mysql.dialect}</prop>
+                <prop key="hibernate.show_sql">${hibernate.mysql.show_sql}</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+
+    <bean id="persistenceExceptionTranslationPostProcessor" class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor"/>
+	
+</beans>

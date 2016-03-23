@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd">
+
+
+<!-- 	<bean id="springSecurityFilterChain" class="org.springframework.security.web.FilterChainProxy"> -->
+<!-- 		<security:filter-chain-map path-type="ant"> -->
+<!-- 			<security:filter-chain pattern="/css/**" filters="none" /> -->
+<!-- 			<security:filter-chain pattern="/images/**" filters="none" /> -->
+<!-- 			<security:filter-chain pattern="/login.jsp*" filters="none" /> -->
+<!-- 			<security:filter-chain pattern="/user/showLoginPage.action" filters="none" /> -->
+<!-- 			<security:filter-chain pattern="/**" filters=" -->
+<!-- 			      securityContextPersistenceFilter, -->
+<!-- 			      logoutFilter, -->
+<!-- 			      authenticationProcessingFilter, -->
+<!-- 			      exceptionTranslationFilter, -->
+<!-- 			      filterSecurityInterceptor -->
+<!-- 			"/> -->
+<!-- 		</security:filter-chain-map> -->
+<!-- 	</bean> -->
+	
+	<bean id="securityContextPersistenceFilter" class="org.springframework.security.web.access.intercept.FilterSecurityInterceptor">
+		<property name="accessDecisionManager" ref="accessDecisionManager" />
+		<property name="authenticationManager" ref="authenticationManager" />
+		<property name="securityMetadataSource" ref="mySecurityMetadataSource"/>
+	</bean>
+	
+	<bean id="accessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">
+		<constructor-arg name="decisionVoters">
+			<list>
+				<ref bean="roleVoter"/>
+				<ref bean="authenticatedVoter"/>
+			</list>
+		</constructor-arg>
+	</bean>
+	
+	<bean id="userDetailsService" class="com.github.lxgang.spring.security.tools.MyUserDetailServiceImpl"/>
+	
+	<bean id="roleVoter" class="org.springframework.security.access.vote.RoleVoter">
+		<property name="rolePrefix" value=""></property>
+	</bean>
+	
+	<bean id="authenticatedVoter" class="org.springframework.security.access.vote.AuthenticatedVoter" />
+
+
+	<!-- 
+		使用对话框方式认证
+		需要注意的是当我们同时定义了http-basic和form-login元素时, form-login将具有更高的优先级. 
+		即在需要认证的时候Spring Security将引导我们到登录页面, 而不是弹出一个窗口.	
+	 -->
+	 
+	<security:http pattern="/login.jsp" security="none" />
+    <security:http pattern="/denied.jsp" security="none" />
+    <security:http pattern="/login.html" security="none" />
+	<security:http pattern="/resources/**" security="none" />
+    
+	<security:http use-expressions="true" auto-config="false"  >
+		<security:http-basic />
+		<security:intercept-url pattern="/**" access="isAuthenticated()"/>
+		<security:form-login login-page="/login.html"  />
+		<security:custom-filter ref="securityContextPersistenceFilter" before="FILTER_SECURITY_INTERCEPTOR"/>
+<!-- 		<security:remember-me use-secure-cookie="false" user-service-ref="userDetailsService"/> -->
+	</security:http>
+	
+	<security:authentication-manager alias="authenticationManager">
+		<security:authentication-provider user-service-ref="userDetailsService"></security:authentication-provider>
+	</security:authentication-manager>
+	
+	
+<!-- 	 <bean id="myAuthenticationEntryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint"> -->
+<!--         <property name="loginFormUrl" value="/login.html"></property> -->
+<!--     </bean> -->
+
+		<bean id ="myUserDetailService" class ="com.github.lxgang.spring.security.tools.MyUserDetailServiceImpl"/> 
+ 
+      	<!--  访问决策器，决定某个用户具有的角色，是否有足够的权限去访问某个资源  --> 
+		<bean id ="myAccessDecisionManager" class ="com.github.lxgang.spring.security.tools.MyAccessDecisionManager" /> 
+     
+     	<!--  资源源数据定义，即定义某一资源可以被哪些角色访问  --> 
+		<bean id ="mySecurityMetadataSource" class ="com.github.lxgang.spring.security.tools.MySecurityMetadataSource"/> 
+	
+</beans>
